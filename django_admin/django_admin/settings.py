@@ -55,7 +55,7 @@ WSGI_APPLICATION = 'django_admin.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': os.getenv('POSTGRES_DB', 'tg_bot'),
         'USER': os.getenv('POSTGRES_USER', 'tg_bot_user'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'tg_bot_password'),

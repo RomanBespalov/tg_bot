@@ -14,6 +14,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import django
+django_project_path = "/Users/romanbespalov/Dev/tg_bot/django_admin/"
+sys.path.append(django_project_path)
+django_admin_path = "/Users/romanbespalov/Dev/tg_bot/django_admin/"
+sys.path.append(django_admin_path)
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_admin.settings")
+
+django.setup()
+from admin_panel.models import Clients
+
+item = Clients.objects.all()
+print(item)
+
 BOT_TOKEN = os.getenv('BOT_TOKEN_ENV')
 bot = Bot(BOT_TOKEN, parse_mode=ParseMode.HTML)
 
@@ -28,9 +42,23 @@ FAQ_DATA = {
 }
 
 
+def create_client(message):
+    user = message.from_user
+    Clients.objects.get_or_create(
+        username=user.username,
+        first_name=user.first_name,
+        last_name=user.last_name,
+    )
+    print('заработало!!!')
+
+
 @dp.message(CommandStart())
 async def check_subscription_group_channel(message: Message):
     """Функция проверки подписки на группу и канал."""
+    try:
+        create_client(message)
+    except Exception as e:
+        print(f"An error occurred: {e}")
     try:
         user_id = message.from_user.id
 
