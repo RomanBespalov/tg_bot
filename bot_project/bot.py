@@ -15,7 +15,8 @@ from dotenv import load_dotenv
 import django
 
 
-django_project_path = "/Users/romanbespalov/Dev/tg_bot/django_admin/"
+# django_project_path = "/Users/romanbespalov/Dev/tg_bot/django_admin/"  # для локального запуска
+django_project_path = "/tg_bot_app"  # для Docker
 sys.path.append(django_project_path)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_admin.settings")

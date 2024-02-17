@@ -59,8 +59,9 @@ DATABASES = {
         'NAME': os.getenv('POSTGRES_DB', 'tg_bot'),
         'USER': os.getenv('POSTGRES_USER', 'tg_bot_user'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'tg_bot_password'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'HOST': os.getenv('DB_HOST', 'db'),  # для Docker
         'PORT': os.getenv('DB_PORT', 5432),
+        # 'HOST': os.getenv('DB_HOST', 'localhost'),  # для локального запуска
     }
 }
 

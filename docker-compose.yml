@@ -1,0 +1,27 @@
+version: '3'
+
+volumes:
+  tg_bot_data:
+
+services:
+  db:
+    image: postgres:13.10
+    env_file: .env
+    volumes:
+      - tg_bot_data:/var/lib/postgresql/data
+  django_admin:
+    build: ./django_admin/
+    env_file: .env
+    depends_on:
+      - db
+  bot_prject:
+    build:
+      context: .
+      dockerfile: ./bot_project/Dockerfile
+    env_file: .env
+  gateway:
+    build: ./gateway/
+    ports:
+      - 8000:80
+    depends_on:
+      - django_admin
