@@ -2,6 +2,7 @@ version: '3'
 
 volumes:
   tg_bot_data:
+  static:
 
 services:
   db:
@@ -14,14 +15,16 @@ services:
     env_file: .env
     depends_on:
       - db
-  bot_prject:
+    volumes:
+      - static:/tg_bot_app/collected_static/
+  bot_project:
     build:
       context: .
       dockerfile: ./bot_project/Dockerfile
     env_file: .env
   gateway:
     build: ./gateway/
+    volumes:
+      - static:/staticfiles/
     ports:
       - 8000:80
-    depends_on:
-      - django_admin
