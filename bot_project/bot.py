@@ -5,18 +5,18 @@ import sys
 
 from aiogram import Bot, Dispatcher, Router, F
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart
+from aiogram.fsm.context import FSMContext
+from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
-from aiogram.utils.markdown import hbold
-from aiogram.types import (InlineQuery, InputTextMessageContent,
-                           InlineQueryResultArticle)
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram import types
 from asgiref.sync import sync_to_async
 from dotenv import load_dotenv
 import django
 
 
-# django_project_path = "/Users/romanbespalov/Dev/tg_bot/django_admin/"  # для локального запуска
-django_project_path = "/tg_bot_app"  # для Docker
+django_project_path = "/Users/romanbespalov/Dev/tg_bot/django_admin/"  # для локального запуска
+# django_project_path = "/tg_bot_app"  # для Docker
 sys.path.append(django_project_path)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_admin.settings")
@@ -39,6 +39,59 @@ FAQ_DATA = {
     "Вопрос 3": "Ответ на вопрос 3.",
     "Вопрос 4": "Ответ на вопрос 4.",
 }
+
+CATALOG_CATEGORIES = ["Категория 1", "Категория 2", "Категория 3"]
+CATALOG_UNDER_CATEGORIES_1 = ["Подкатегория 1.1", "Подкатегория 1.2", "Подкатегория 1.3"]
+CATALOG_UNDER_CATEGORIES_2 = ["Подкатегория 2.1", "Подкатегория 2.2", "Подкатегория 2.3"]
+CATALOG_UNDER_CATEGORIES_3 = ["Подкатегория 3.1", "Подкатегория 3.2", "Подкатегория 3.3"]
+
+RESULTS_PER_PAGE = 3
+
+
+@dp.message(Command("каталог"))
+async def show_catalog(message: types.Message):
+    """Показать каталог в формате инлайн кнопок с пагинацией."""
+    builder = InlineKeyboardBuilder()
+    builder.add(types.InlineKeyboardButton(
+        text="Каталог", callback_data="catalog")
+    )
+    await message.answer(
+        'Нажмите чтобы перейти в каталог товаров',
+        reply_markup=builder.as_markup(),
+    )
+
+
+@dp.callback_query(F.data == "catalog")
+async def catalog(callback: types.CallbackQuery, state: FSMContext):
+    builder = InlineKeyboardBuilder()
+    for category in CATALOG_CATEGORIES:
+        builder.add(types.InlineKeyboardButton(
+            text=category, callback_data=f"catalog:{category}")
+        )
+    # await state.update_data(chosen_category=category)
+    await callback.message.answer(
+        'Категории товаров',
+        reply_markup=builder.as_markup(),
+    )
+
+
+@dp.callback_query(F.data.startswith("catalog:"))
+async def under_catalog(callback: types.CallbackQuery, state: FSMContext):
+    chosen_category = callback.data.split(":")[1]
+    # print(await state.get_data())
+    if chosen_category:
+        subcategories = f'CATALOG_UNDER_CATEGORIES_{chosen_category[-1]}'
+        filtered_subcategories = globals()[subcategories]
+
+        builder = InlineKeyboardBuilder()
+        for subcategory in filtered_subcategories:
+            builder.row(types.InlineKeyboardButton(
+                text=subcategory, callback_data=f"subcategory:{subcategory}")
+            )
+        await callback.message.answer(
+            f'Подкатегории товаров для {chosen_category}',
+            reply_markup=builder.as_markup(),
+        )
 
 
 @sync_to_async
@@ -78,19 +131,19 @@ async def check_subscription_group_channel(message: Message):
 
 
 @router.inline_query(F.query)
-async def show_FAQ(inline_query: InlineQuery):
+async def show_FAQ(inline_query: types.InlineQuery):
     """Функция для создания ответов на частозадаваемые вопросы
     в формате инлайн режима с автоматическим дополнением вопроса."""
     query = inline_query.query.lower()
     results = []
-    i = 0
+    i = -1
     for question, answer in FAQ_DATA.items():
         if query in question.lower():
             i += 1
-            results.append(InlineQueryResultArticle(
+            results.append(types.InlineQueryResultArticle(
                 id=str(i),
                 title=f'{question} - {answer}',
-                input_message_content=InputTextMessageContent(message_text=answer)
+                input_message_content=types.InputTextMessageContent(message_text=answer)
             ))
 
     await inline_query.answer(results, is_personal=True)
